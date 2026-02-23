@@ -1,0 +1,734 @@
+local player = game.Players.LocalPlayer
+local MarketplaceService = game:GetService("MarketplaceService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local LocalizationService = game:GetService("LocalizationService")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "Bl1ssPolaria"
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame (smaller size)
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 600, 0, 400)
+main.Position = UDim2.new(0.5, -300, 0.5, -200)
+main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+main.BorderSizePixel = 2
+main.BorderColor3 = Color3.fromRGB(145, 0, 255)
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 0, 50)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = main
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -80, 1, 0)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Polaria f3x ported by bl1sskidd"
+titleLabel.TextColor3 = Color3.new(1,1,1)
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextSize = 18
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = titleBar
+
+-- Window buttons
+local function createWinBtn(txt, xOff, cb)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 30, 0, 24)
+    b.Position = UDim2.new(1, xOff, 0, 3)
+    b.BackgroundColor3 = Color3.fromRGB(40, 0, 80)
+    b.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    b.Text = txt
+    b.Font = Enum.Font.SourceSansBold
+    b.TextColor3 = Color3.new(1,1,1)
+    b.TextSize = 16
+    b.Parent = titleBar
+    b.MouseButton1Click:Connect(cb)
+end
+
+createWinBtn("X", -35, function() gui:Destroy() end)
+createWinBtn("-", -70, function() main.Visible = not main.Visible end)
+
+-- Tabs
+local tabNames = {"Home", "Epik", "Tabz", "Scripts", "Server/Local", "Executor", "Console", "Utility"}
+local tabBtns = {}
+local pages = {}
+
+for i, name in ipairs(tabNames) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 70, 0, 30)
+    btn.Position = UDim2.new(0, 6 + (i-1)*75, 0, 32)
+    btn.BackgroundColor3 = Color3.fromRGB(20, 0, 50)
+    btn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.SourceSansSemibold
+    btn.TextSize = 13
+    btn.Parent = main
+    tabBtns[name] = btn
+
+    local pg = Instance.new("Frame")
+    pg.Name = name.."Page"
+    pg.Size = UDim2.new(1, -12, 1, -70)
+    pg.Position = UDim2.new(0, 6, 0, 65)
+    pg.BackgroundTransparency = 1
+    pg.Visible = (name == "Home")
+    pg.Parent = main
+    pages[name] = pg
+end
+
+-- Tab switching
+for name, btn in pairs(tabBtns) do
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(pages) do p.Visible = false end
+        pages[name].Visible = true
+        for _, b in pairs(tabBtns) do
+            b.BackgroundColor3 = Color3.fromRGB(20, 0, 50)
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(70, 0, 140)
+    end)
+end
+
+-- ── HOME ───────────────────────────────────────────────────────
+local home = pages.Home
+
+local av = Instance.new("ImageLabel")
+av.Size = UDim2.new(0, 70, 0, 70)
+av.Position = UDim2.new(0, 10, 0, 10)
+av.BackgroundTransparency = 1
+av.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=420&h=420"
+av.Parent = home
+
+-- Get country flag emoji
+local countryCode = "XX"
+local countryFlag = "🏳️"
+pcall(function()
+    countryCode = LocalizationService:GetCountryRegionForPlayerAsync(player)
+    if countryCode and #countryCode == 2 then
+        local offset = 0x1F1E6 - string.byte("A")
+        local first = string.byte(string.upper(string.sub(countryCode,1,1))) + offset
+        local second = string.byte(string.upper(string.sub(countryCode,2,2))) + offset
+        countryFlag = utf8.char(first, second)
+    end
+end)
+
+-- Rough device/OS detection
+local osName = "Unknown Device"
+if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+    osName = "Mobile"
+elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
+    if GuiService:IsTenFootInterface() then
+        osName = "Console"
+    else
+        osName = "Windows"
+    end
+elseif UserInputService.GamepadEnabled then
+    osName = "Gamepad / Console"
+end
+
+local homeInfo = {
+    "sup, " .. player.DisplayName,
+    "@" .. player.Name,
+    "Place: " .. (pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId).Name end) and MarketplaceService:GetProductInfo(game.PlaceId).Name or "???"),
+    "FE Status: Disabled",
+    "Device: " .. osName,
+    "Location: " .. countryFlag .. "  (" .. countryCode .. ")",
+    "rest in peace my granny she got hit by a bazooka",
+    "Made by bl1sskidd. if u see this ur gay"
+}
+
+local infoY = 8
+for i, line in ipairs(homeInfo) do
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1, -90, 0, 22)
+    l.Position = UDim2.new(0, 90, 0, infoY)
+    l.BackgroundTransparency = 1
+    l.Text = line
+    l.TextColor3 = (i<=2) and Color3.fromRGB(220,180,255) or (i>=4 and i<=6 and Color3.fromRGB(160,255,180) or Color3.new(1,1,1))
+    l.Font = (i<=2) and Enum.Font.SourceSansBold or Enum.Font.SourceSans
+    l.TextSize = (i<=2) and 20 or 15
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = home
+    infoY = infoY + 24
+end
+
+-- Easter egg button
+local easterEgg = Instance.new("TextButton")
+easterEgg.Size = UDim2.new(0, 90, 0, 28)
+easterEgg.Position = UDim2.new(0, 90, 0, infoY + 10)
+easterEgg.BackgroundColor3 = Color3.fromRGB(40, 0, 80)
+easterEgg.BorderColor3 = Color3.fromRGB(145, 0, 255)
+easterEgg.Text = "Secret"
+easterEgg.TextColor3 = Color3.new(1,1,1)
+easterEgg.Font = Enum.Font.SourceSansItalic
+easterEgg.TextSize = 14
+easterEgg.Parent = home
+
+easterEgg.MouseButton1Click:Connect(function()
+    local msgs = {
+        "bl1sskidd was here₎",
+        "you found the egg... now go touch grass",
+        "granny approves this message",
+        "https://youtu.be/dQw4w9WgXcQ",
+        "1x9 is gay"
+    }
+    local randomMsg = msgs[math.random(1,#msgs)]
+    local popup = Instance.new("TextLabel")
+    popup.Size = UDim2.new(0, 300, 0, 80)
+    popup.Position = UDim2.new(0.5, -150, 0.5, -40)
+    popup.BackgroundColor3 = Color3.fromRGB(20, 0, 50)
+    popup.BorderColor3 = Color3.fromRGB(255, 100, 100)
+    popup.Text = randomMsg
+    popup.TextColor3 = Color3.new(1, 0.8, 0.8)
+    popup.Font = Enum.Font.SourceSansBold
+    popup.TextSize = 18
+    popup.TextWrapped = true
+    popup.Parent = home
+    game:GetService("Debris"):AddItem(popup, 4)
+end)
+
+-- Get F3X button
+local getF3X = Instance.new("TextButton")
+getF3X.Size = UDim2.new(0, 160, 0, 36)
+getF3X.Position = UDim2.new(0.5, -80, 0, infoY + 50)
+getF3X.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+getF3X.BorderColor3 = Color3.fromRGB(145, 0, 255)
+getF3X.Text = "Get F3X "
+getF3X.TextColor3 = Color3.new(1,1,1)
+getF3X.Font = Enum.Font.SourceSansBold
+getF3X.TextSize = 16
+getF3X.Parent = home
+
+getF3X.MouseButton1Click:Connect(function()
+    task.spawn(function()
+        pcall(function()
+            -- You can change this URL to any working F3X / f3x building tools script you prefer
+            loadstring(game:HttpGet("https://pastefy.app/le7UXaTo/raw", true))()
+          
+        end)
+    end)
+end)
+
+-- Discord button
+local disc = Instance.new("TextButton")
+disc.Size = UDim2.new(0, 160, 0, 36)
+disc.Position = UDim2.new(0.5, -80, 1, -50)
+disc.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+disc.BorderColor3 = Color3.fromRGB(145, 0, 255)
+disc.Text = "Join Discord"
+disc.TextColor3 = Color3.new(1,1,1)
+disc.Font = Enum.Font.SourceSansBold
+disc.TextSize = 16
+disc.Parent = home
+
+disc.MouseButton1Click:Connect(function()
+    setclipboard("https://discord.gg/fZmJr88Uq2")
+    disc.Text = "Copied!"
+    task.delay(1.4, function() disc.Text = "join ur server" end)
+end)
+
+-- ── Script Button Creator ─────────────────────────────────────
+local function newScriptBtn(name, url, parent)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 130, 0, 34)
+    b.BackgroundColor3 = Color3.fromRGB(30, 0, 70)
+    b.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    b.Text = name
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.SourceSans
+    b.TextSize = 14
+    b.TextWrapped = true
+    b.Parent = parent
+
+    b.MouseButton1Click:Connect(function()
+        task.spawn(function()
+            pcall(function()
+                loadstring(game:HttpGet(url, true))()
+            end)
+        end)
+    end)
+    return b
+end
+
+-- ── EPIK ───────────────────────────────────────────────────────
+local epik = pages.Epik
+local epikGrid = Instance.new("UIGridLayout", epik)
+epikGrid.CellSize = UDim2.new(0, 130, 0, 34)
+epikGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+epikGrid.SortOrder = Enum.SortOrder.LayoutOrder
+
+local epikList = {
+    {"Grab Knife", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/grab%20knoif.txt"},
+    {"C00lkidd decal", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/c000lkidd%20decal.txt"},
+    {"Obunga", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/obunga%20decal.txt"},
+    {"RC7 Cloud", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/Rc7_Cloud_F3X_v2.txt"},
+    {"Men Decal", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/men%20decal.txt"},
+    {"Slap Map", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/slap%20tower.txt"},
+    {"NDS Map", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/nds.txt"},
+    {"Obama Rain", "https://pastebin.com/raw/4RVkHQQi"},
+    {"Bonk decal", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/bonk%20decal.txt"},
+    {"Goner", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/goner.txt"},
+    {"Allah Decal", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/allah%20decal.txt"},
+    {"Particle Spam", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/particle%20spam"},
+    {"Scary Sky", "https://pastefy.app/5zVghWhf/raw"},
+}
+for _, v in ipairs(epikList) do newScriptBtn(v[1], v[2], epik) end
+
+-- ── TABZ ───────────────────────────────────────────────────────
+local tabz = pages.Tabz
+local tabzGrid = Instance.new("UIGridLayout", tabz)
+tabzGrid.CellSize = UDim2.new(0, 130, 0, 34)
+tabzGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+
+local tabzList = {
+    {"Decal Spam 1", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/decal.txt"},
+    {"Skybox 1", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/skybox.txt"},
+    {"Skybox 2", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/bl1ss%20sky.txt"},
+    {"Btools", "https://pastefy.app/le7UXaTo/raw"},
+    {"Particles", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/particles.txt"},
+    {"Decal spam 2", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/bl1ss%20decal.txt"},
+    {"Fire All", "https://pastefy.app/L9ehHB3W/raw"},
+    {"Char All", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/char%20all.txt"},
+    {"My Realm", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/my%20realm.txt"},
+    {"Thomas", "https://pastebin.com/raw/WneFn7Wv"},
+    {"Rain Troll", "https://pastefy.app/6hQPrW8e/raw"},
+    {"Message 1", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/sm%201"},
+    {"Title All", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/title%20all"},
+    {"Audio 1", "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/music"},
+}
+for _, v in ipairs(tabzList) do newScriptBtn(v[1], v[2], tabz) end
+
+-- ── SCRIPTS ────────────────────────────────────────────────────
+local scripts = pages.Scripts
+local scriptsGrid = Instance.new("UIGridLayout", scripts)
+scriptsGrid.CellSize = UDim2.new(0, 130, 0, 34)
+scriptsGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+
+local scriptsList = {
+    {"Lnicky", "https://rawscripts.net/raw/Universal-Script-LNicky-Ultimate-F3X-Gui-42094"},
+    {"Infinite Yield", "https://cdn.wearedevs.net/scripts/Infinite%20Yield.txt"},
+    {"1x1x1x1", "https://rawscripts.net/raw/Universal-Script-1x1x1x1-gui-f3x-and-hd-admin-41931"},
+    {"Zoung GUI", "https://rawscripts.net/raw/Universal-Script-zoung-gui-private-edition-41511"},
+    {"Synapse X", "https://raw.githubusercontent.com/AZYsGithub/Chillz-s-scripts/main/Synapse-X-Remake.lua"},
+    {"SSP", "https://pastefy.app/t2gUwfXy/raw"},
+    {"Epik R6 Dancezz", "https://rawscripts.net/raw/Universal-Script-Epik-R6-Dancezz-42246"},
+    {"GhostHub", "https://raw.githubusercontent.com/GhostPlayer352/Test4/main/GhostHub"},
+    {"Client Sided GUI", "https://pastefy.app/kVLBGCjG/raw"},
+    {"ChatHax", "https://pastefy.app/8XhIoZYX/raw"},
+    {"Barry Prison FE TROLL", "https://pastebin.com/raw/a71y69Gr"},
+    {"g00byd0lan", "https://rawscripts.net/raw/Universal-Script-g00byd0lan-f3x-10362"},
+    {"HARKED REBORN V2", "https://rawscripts.net/raw/Live-Life-Rich-and-Famous-in-Paradise!-harked-that-only-work-for-this-game-8800"},
+    {"Lalol Hub", "https://rawscripts.net/raw/Universal-Script-Lalol-hub-30354"},
+    {"Bany Side", "https://rawscripts.net/raw/Universal-Script-Bany-side-28741"},
+    {"Dex", "https://rawscripts.net/raw/Universal-Script-REAL-DEX-EXPLORER-DONT-BE-SCAMMED-41800"},
+    {"SCP-096", "https://pastefy.app/YsJgITXR/raw"},
+    {"Black Hole", "https://raw.githubusercontent.com/Bac0nHck/Scripts/main/BringFlingPlayers"},
+    {"Sonic.exe", "https://pastefy.app/jRSu2UQR/raw"},
+    {"Brookhaven SS", "https://scriptblox.com/raw/Brookhaven-RP-R4D-TROLL-NO-KEY-17625"},
+    {"Sypcerr", "https://raw.githubusercontent.com/sypcerr/FECollection/refs/heads/main/script.lua"},
+    {"Fly GUI v3", "https://rawscripts.net/raw/Universal-Script-Gui-Fly-v3-37111"},
+    {"c00lgui", "https://rawscripts.net/raw/Universal-Script-C00lgui-f3x-9682"},
+    {"FE Bypass", "https://pastebin.com/raw/DxMwPkXH"},
+    {"Energize", "https://rawscripts.net/raw/a-literal-baseplate.-energize-gui-24798"},
+}
+for _, v in ipairs(scriptsList) do newScriptBtn(v[1], v[2], scripts) end
+
+-- ── SERVER/LOCAL ──────────────────────────────────────────────
+local serverLocal = pages["Server/Local"]
+local props = {"WalkSpeed", "JumpPower"}
+for i, prop in ipairs(props) do
+    local lbl = Instance.new("TextLabel")
+    lbl.Position = UDim2.new(0, 10, 0, 10 + (i-1)*60)
+    lbl.Size = UDim2.new(0, 130, 0, 26)
+    lbl.Text = prop .. " :"
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.SourceSansBold
+    lbl.TextSize = 16
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = serverLocal
+
+    local box = Instance.new("TextBox")
+    box.Position = UDim2.new(0, 140, 0, 10 + (i-1)*60)
+    box.Size = UDim2.new(0, 70, 0, 26)
+    box.BackgroundColor3 = Color3.fromRGB(30, 0, 30)
+    box.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    box.TextColor3 = Color3.new(1,1,1)
+    box.Font = Enum.Font.Code
+    box.TextSize = 14
+    box.ClearTextOnFocus = true
+    box.Text = tostring(player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid[prop] or (prop == "WalkSpeed" and "16" or "50"))
+    box.Parent = serverLocal
+
+    local apply = Instance.new("TextButton")
+    apply.Position = UDim2.new(0, 220, 0, 10 + (i-1)*60)
+    apply.Size = UDim2.new(0, 90, 0, 26)
+    apply.BackgroundColor3 = Color3.fromRGB(40, 0, 100)
+    apply.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    apply.Text = "Apply"
+    apply.TextColor3 = Color3.new(1,1,1)
+    apply.Font = Enum.Font.SourceSansBold
+    apply.TextSize = 14
+    apply.Parent = serverLocal
+
+    apply.MouseButton1Click:Connect(function()
+        local val = tonumber(box.Text)
+        if val and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid[prop] = val
+        end
+    end)
+end
+
+-- ── EXECUTOR ──────────────────────────────────────────────────
+local exec = pages.Executor
+local code = Instance.new("TextBox")
+code.Size = UDim2.new(1, -20, 1, -60)
+code.Position = UDim2.new(0, 10, 0, 10)
+code.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+code.BorderColor3 = Color3.fromRGB(145, 0, 255)
+code.TextColor3 = Color3.new(0.95,0.95,1)
+code.Font = Enum.Font.Code
+code.TextSize = 14
+code.MultiLine = true
+code.ClearTextOnFocus = false
+code.Text = "-- Paste / write Lua code here --\n-- Execute runs on client --"
+code.Parent = exec
+
+local exBtn = Instance.new("TextButton")
+exBtn.Size = UDim2.new(0, 140, 0, 36)
+exBtn.Position = UDim2.new(0, 10, 1, -46)
+exBtn.BackgroundColor3 = Color3.fromRGB(40, 0, 100)
+exBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+exBtn.Text = "Execute"
+exBtn.TextColor3 = Color3.new(1,1,1)
+exBtn.Font = Enum.Font.SourceSansBold
+exBtn.TextSize = 16
+exBtn.Parent = exec
+
+exBtn.MouseButton1Click:Connect(function()
+    pcall(loadstring, code.Text)
+end)
+
+-- ── CONSOLE ───────────────────────────────────────────────────
+local con = pages.Console
+local conScroll = Instance.new("ScrollingFrame", con)
+conScroll.Size = UDim2.new(1, -12, 1, -12)
+conScroll.Position = UDim2.new(0, 6, 0, 6)
+conScroll.BackgroundColor3 = Color3.fromRGB(10, 5, 15)
+conScroll.BorderColor3 = Color3.fromRGB(145, 0, 255)
+conScroll.ScrollBarThickness = 5
+conScroll.CanvasSize = UDim2.new(0,0,0,0)
+
+local conLayout = Instance.new("UIListLayout", conScroll)
+conLayout.Padding = UDim.new(0, 3)
+conLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function log(msg, col)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -10, 0, 20)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = tostring(msg)
+    lbl.TextColor3 = col or Color3.new(0.9,0.9,0.95)
+    lbl.Font = Enum.Font.Code
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = conScroll
+    conScroll.CanvasSize = UDim2.new(0,0,0, conLayout.AbsoluteContentSize.Y + 15)
+    conScroll.CanvasPosition = Vector2.new(0, 9999)
+end
+
+log("Console initialized — bl1sskidd v20", Color3.fromRGB(180,120,255))
+
+local oldPrint = print
+print = function(...) 
+    local t = table.concat({...}, " ")
+    oldPrint(...)
+    log("[print] " .. t, Color3.fromRGB(200,255,200))
+end
+
+local oldWarn = warn
+warn = function(...) 
+    local t = table.concat({...}, " ")
+    oldWarn(...)
+    log("[warn]  " .. t, Color3.fromRGB(255,220,120))
+end
+
+-- ── UTILITY ───────────────────────────────────────────────────
+local util = pages.Utility
+local utilGrid = Instance.new("UIGridLayout", util)
+utilGrid.CellSize = UDim2.new(0, 140, 0, 40)
+utilGrid.CellPadding = UDim2.new(0, 10, 0, 10)
+
+local function uBtn(name, parent, callback)
+    local b = Instance.new("TextButton", parent)
+    b.BackgroundColor3 = Color3.fromRGB(30, 0, 70)
+    b.BorderColor3 = Color3.fromRGB(145, 0, 255)
+    b.Text = name
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.SourceSansSemibold
+    b.TextSize = 14
+    b.MouseButton1Click:Connect(callback)
+    return b
+end
+
+uBtn("Rejoin", util, function()
+    TeleportService:Teleport(game.PlaceId, player)
+end)
+
+uBtn("Serverhop", util, function()
+    task.spawn(function()
+        local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
+        for _, v in ipairs(servers) do
+            if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id)
+                break
+            end
+        end
+    end)
+end)
+
+local fpsBtn = uBtn("FPS Counter: OFF", util, nil)
+local fpsConn
+fpsBtn.MouseButton1Click:Connect(function()
+    if fpsConn then
+        fpsConn:Disconnect()
+        fpsConn = nil
+        fpsBtn.Text = "FPS Counter: OFF"
+        return
+    end
+    local frames = 0
+    local lastTime = tick()
+    fpsConn = RunService.Heartbeat:Connect(function()
+        frames += 1
+        if tick() - lastTime >= 1 then
+            fpsBtn.Text = "FPS: " .. math.floor(frames / (tick() - lastTime) + 0.5)
+            frames = 0
+            lastTime = tick()
+        end
+    end)
+end)
+
+uBtn("Infinity Yield", util, function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end)
+
+uBtn("Clear Console", util, function()
+    for _, obj in pairs(conScroll:GetChildren()) do
+        if obj:IsA("TextLabel") then
+            obj:Destroy()
+        end
+    end
+    conScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    log("Console cleared")
+end)
+
+uBtn("Leave", util, function()
+    player:Kick("Left the game using bl1sskidd gui")
+end)
+
+print("fi boipis leded!")
+
+
+-- ── EXECUTOR (with line numbers, copy, clear, hide, mode toggle) ───────────────
+local exec = pages.Executor
+
+-- Execution mode indicator
+local execMode = "Client"
+local modeLabel = Instance.new("TextLabel")
+modeLabel.Size = UDim2.new(0, 140, 0, 30)
+modeLabel.Position = UDim2.new(0, 160, 1, -46)
+modeLabel.BackgroundColor3 = Color3.fromRGB(30, 70, 30)           -- green for client
+modeLabel.BorderColor3 = Color3.fromRGB(145, 0, 255)
+modeLabel.Text = "Mode: Client (Local)"
+modeLabel.TextColor3 = Color3.new(0.9, 1, 0.9)
+modeLabel.Font = Enum.Font.SourceSansBold
+modeLabel.TextSize = 16
+modeLabel.Parent = exec
+
+local toggleModeBtn = Instance.new("TextButton")
+toggleModeBtn.Size = UDim2.new(0, 100, 0, 30)
+toggleModeBtn.Position = UDim2.new(0, 310, 1, -46)
+toggleModeBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)       -- black
+toggleModeBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+toggleModeBtn.Text = "Switch → Server"
+toggleModeBtn.TextColor3 = Color3.new(1,1,1)
+toggleModeBtn.Font = Enum.Font.SourceSansSemibold
+toggleModeBtn.TextSize = 14
+toggleModeBtn.Parent = exec
+
+toggleModeBtn.MouseButton1Click:Connect(function()
+    if execMode == "Client" then
+        execMode = "Server"
+        modeLabel.BackgroundColor3 = Color3.fromRGB(100, 20, 20)   -- red for server
+        modeLabel.TextColor3 = Color3.new(1, 0.9, 0.9)
+        modeLabel.Text = "Mode: Server"
+        toggleModeBtn.Text = "Switch → Client"
+    else
+        execMode = "Client"
+        modeLabel.BackgroundColor3 = Color3.fromRGB(30, 70, 30)
+        modeLabel.TextColor3 = Color3.new(0.9, 1, 0.9)
+        modeLabel.Text = "Mode: Client (Local)"
+        toggleModeBtn.Text = "Switch → Server"
+    end
+    updateExecuteButton()
+end)
+
+-- Code area with line numbers
+local codeFrame = Instance.new("Frame")
+codeFrame.Size = UDim2.new(1, -20, 1, -100)
+codeFrame.Position = UDim2.new(0, 10, 0, 10)
+codeFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+codeFrame.BorderColor3 = Color3.fromRGB(145, 0, 255)
+codeFrame.Parent = exec
+
+local lineNumbers = Instance.new("TextLabel")
+lineNumbers.Size = UDim2.new(0, 40, 1, -4)
+lineNumbers.Position = UDim2.new(0, 4, 0, 2)
+lineNumbers.BackgroundTransparency = 1
+lineNumbers.TextColor3 = Color3.fromRGB(140, 140, 160)
+lineNumbers.Font = Enum.Font.Code
+lineNumbers.TextSize = 13
+lineNumbers.TextXAlignment = Enum.TextXAlignment.Right
+lineNumbers.TextYAlignment = Enum.TextYAlignment.Top
+lineNumbers.TextWrapped = false
+lineNumbers.Text = "1"
+lineNumbers.Parent = codeFrame
+
+local code = Instance.new("TextBox")
+code.Size = UDim2.new(1, -48, 1, -4)
+code.Position = UDim2.new(0, 48, 0, 2)
+code.BackgroundTransparency = 1
+code.TextColor3 = Color3.new(0.95,0.95,1)
+code.Font = Enum.Font.Code
+code.TextSize = 14
+code.MultiLine = true
+code.ClearTextOnFocus = false
+code.TextXAlignment = Enum.TextXAlignment.Left
+code.TextYAlignment = Enum.TextYAlignment.Top
+code.Text = "-- Paste / write Lua code here --\n-- Client = green   Server = red --"
+code.Parent = codeFrame
+
+local function updateLineNumbers()
+    local text = code.Text or ""
+    local lines = 1
+    for _ in text:gmatch("\n") do lines = lines + 1 end
+    local numText = ""
+    for i = 1, lines do
+        numText = numText .. tostring(i) .. "\n"
+    end
+    lineNumbers.Text = numText
+end
+
+code:GetPropertyChangedSignal("Text"):Connect(updateLineNumbers)
+code.FocusLost:Connect(updateLineNumbers)
+updateLineNumbers()
+
+-- ── All buttons now black ─────────────────────────────────────
+local clearBtn = Instance.new("TextButton")
+clearBtn.Size = UDim2.new(0, 80, 0, 36)
+clearBtn.Position = UDim2.new(0, 10, 1, -86)
+clearBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)            -- black
+clearBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+clearBtn.Text = "Clear"
+clearBtn.TextColor3 = Color3.new(1,1,1)
+clearBtn.Font = Enum.Font.SourceSansBold
+clearBtn.TextSize = 16
+clearBtn.Parent = exec
+
+clearBtn.MouseButton1Click:Connect(function()
+    code.Text = ""
+    updateLineNumbers()
+end)
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Size = UDim2.new(0, 80, 0, 36)
+copyBtn.Position = UDim2.new(0, 100, 1, -86)
+copyBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)             -- black
+copyBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+copyBtn.Text = "Copy"
+copyBtn.TextColor3 = Color3.new(1,1,1)
+copyBtn.Font = Enum.Font.SourceSansBold
+copyBtn.TextSize = 16
+copyBtn.Parent = exec
+
+copyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(code.Text)
+        copyBtn.Text = "Copied!"
+        task.delay(1.2, function() copyBtn.Text = "Copy" end)
+    else
+        copyBtn.Text = "No setclipboard"
+        task.delay(1.5, function() copyBtn.Text = "Copy" end)
+    end
+end)
+
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size = UDim2.new(0, 100, 0, 36)
+hideBtn.Position = UDim2.new(0, 190, 1, -86)
+hideBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)             -- black
+hideBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+hideBtn.Text = "Hide GUI"
+hideBtn.TextColor3 = Color3.new(1,1,1)
+hideBtn.Font = Enum.Font.SourceSansBold
+hideBtn.TextSize = 16
+hideBtn.Parent = exec
+
+hideBtn.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+    hideBtn.Text = main.Visible and "Hide GUI" or "Show GUI"
+end)
+
+local executeBtn = Instance.new("TextButton")
+executeBtn.Size = UDim2.new(0, 140, 0, 36)
+executeBtn.Position = UDim2.new(0, 300, 1, -86)
+executeBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)          -- black (mode color moved to label)
+executeBtn.BorderColor3 = Color3.fromRGB(145, 0, 255)
+executeBtn.Text = "Execute (Client)"
+executeBtn.TextColor3 = Color3.new(1,1,1)
+executeBtn.Font = Enum.Font.SourceSansBold
+executeBtn.TextSize = 16
+executeBtn.Parent = exec
+
+local function updateExecuteButton()
+    if execMode == "Client" then
+        executeBtn.Text = "Execute (Client)"
+    else
+        executeBtn.Text = "Execute (Server)"
+    end
+end
+
+executeBtn.MouseButton1Click:Connect(function()
+    local scriptCode = code.Text
+    
+    if execMode == "Client" then
+        task.spawn(function()
+            pcall(loadstring(scriptCode))
+        end)
+    else
+        warn("[Executor] Attempting server-side execution (placeholder)")
+        task.spawn(function()
+            pcall(function()
+                local remote = game:GetService("ReplicatedStorage"):FindFirstChildWhichIsA("RemoteEvent")
+                if remote then
+                    remote:FireServer(scriptCode)
+                    print("Fired to: " .. remote:GetFullName())
+                else
+                    warn("No RemoteEvent found for server exec attempt")
+                end
+            end)
+        end)
+    end
+end)
+
+updateExecuteButton()

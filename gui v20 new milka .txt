@@ -1,0 +1,552 @@
+local player = game.Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "bl1sskidd gui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame - Rectangular
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 600, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -225)  -- Centered on screen
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BorderSizePixel = 2
+mainFrame.BorderColor3 = Color3.fromRGB(115, 12, 194)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = gui
+
+-- Title Bar
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, 0, 0, 40)
+titleText.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+titleText.Text = "Bl1ss's ultimate F3X abusing gui v1 r6"
+titleText.TextColor3 = Color3.new(1, 1, 1)
+titleText.Font = Enum.Font.Code
+titleText.TextSize = 25
+titleText.Parent = mainFrame
+
+-- Content Area (left side)
+local contentArea = Instance.new("Frame")
+contentArea.Size = UDim2.new(1, -120, 1, -50)
+contentArea.Position = UDim2.new(0, 0, 0, 40)
+contentArea.BackgroundTransparency = 1
+contentArea.Parent = mainFrame
+
+-- Tabs on the Right (vertical)
+local tabFrame = Instance.new("Frame")
+tabFrame.Size = UDim2.new(0, 120, 1, -50)
+tabFrame.Position = UDim2.new(1, -120, 0, 40)
+tabFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+tabFrame.Parent = mainFrame
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.Padding = UDim.new(0, 5)
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabLayout.Parent = tabFrame
+
+-- Create Vertical Tab Buttons
+local function makeTabButton(name)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -10, 0, 50)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(115, 12, 194)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.Code
+    btn.TextSize = 18
+    btn.Parent = tabFrame
+    return btn
+end
+
+-- NEW: Home tab first + others
+local homeBtn = makeTabButton("Home")
+local epikBtn = makeTabButton("Script 1")
+local tabzBtn = makeTabButton("Script 2")
+local executorBtn = makeTabButton("Executor")
+local consoleBtn = makeTabButton("Console")
+local utilityBtn = makeTabButton("Utility")
+
+homeBtn.BackgroundColor3 = Color3.fromRGB(115, 12, 194)  -- Home active by default
+
+-- Content Frames
+local homeContent = Instance.new("Frame")
+homeContent.Size = UDim2.new(1, -20, 1, -10)
+homeContent.Position = UDim2.new(0, 10, 0, 5)
+homeContent.BackgroundTransparency = 1
+homeContent.Visible = true  -- Default visible
+homeContent.Parent = contentArea
+
+local epikContent = Instance.new("Frame")
+epikContent.Size = UDim2.new(1, -20, 1, -10)
+epikContent.Position = UDim2.new(0, 10, 0, 5)
+epikContent.BackgroundTransparency = 1
+epikContent.Visible = false
+epikContent.Parent = contentArea
+
+local tabzContent = Instance.new("Frame")
+tabzContent.Size = UDim2.new(1, -20, 1, -10)
+tabzContent.Position = UDim2.new(0, 10, 0, 5)
+tabzContent.BackgroundTransparency = 1
+tabzContent.Visible = false
+tabzContent.Parent = contentArea
+
+local executorContent = Instance.new("Frame")
+executorContent.Size = UDim2.new(1, -20, 1, -10)
+executorContent.Position = UDim2.new(0, 10, 0, 5)
+executorContent.BackgroundTransparency = 1
+executorContent.Visible = false
+executorContent.Parent = contentArea
+
+local consoleContent = Instance.new("Frame")
+consoleContent.Size = UDim2.new(1, -20, 1, -10)
+consoleContent.Position = UDim2.new(0, 10, 0, 5)
+consoleContent.BackgroundTransparency = 1
+consoleContent.Visible = false
+consoleContent.Parent = contentArea
+
+local utilityContent = Instance.new("Frame")
+utilityContent.Size = UDim2.new(1, -20, 1, -10)
+utilityContent.Position = UDim2.new(0, 10, 0, 5)
+utilityContent.BackgroundTransparency = 1
+utilityContent.Visible = false
+utilityContent.Parent = contentArea
+
+-- Tab Switching (now includes Home)
+local function switchTab(btn, content)
+    homeContent.Visible = content == homeContent
+    epikContent.Visible = content == epikContent
+    tabzContent.Visible = content == tabzContent
+    executorContent.Visible = content == executorContent
+    consoleContent.Visible = content == consoleContent
+    utilityContent.Visible = content == utilityContent
+
+    for _, b in pairs({homeBtn, epikBtn, tabzBtn, executorBtn, consoleBtn, utilityBtn}) do
+        b.BackgroundColor3 = (b == btn) and Color3.fromRGB(115, 12, 194) or Color3.fromRGB(50, 50, 50)
+    end
+end
+
+homeBtn.MouseButton1Click:Connect(function() switchTab(homeBtn, homeContent) end)
+epikBtn.MouseButton1Click:Connect(function() switchTab(epikBtn, epikContent) end)
+tabzBtn.MouseButton1Click:Connect(function() switchTab(tabzBtn, tabzContent) end)
+executorBtn.MouseButton1Click:Connect(function() switchTab(executorBtn, executorContent) end)
+consoleBtn.MouseButton1Click:Connect(function() switchTab(consoleBtn, consoleContent) end)
+utilityBtn.MouseButton1Click:Connect(function() switchTab(utilityBtn, utilityContent) end)
+
+-- ===== HOME TAB CONTENT =====
+local homeTitle = Instance.new("TextLabel")
+homeTitle.Size = UDim2.new(1, 0, 0, 80)
+homeTitle.BackgroundTransparency = 1
+homeTitle.Text = "bl1sskidd gui"
+homeTitle.TextColor3 = Color3.fromRGB(115, 12, 194)
+homeTitle.Font = Enum.Font.Code
+homeTitle.TextSize = 50
+homeTitle.Parent = homeContent
+
+local welcomeLabel = Instance.new("TextLabel")
+welcomeLabel.Size = UDim2.new(1, 0, 0, 40)
+welcomeLabel.Position = UDim2.new(0, 0, 0, 80)
+welcomeLabel.BackgroundTransparency = 1
+welcomeLabel.Text = "Hi, " .. player.DisplayName .. " (@" .. player.Name .. ")"
+welcomeLabel.TextColor3 = Color3.new(1,1,1)
+welcomeLabel.Font = Enum.Font.SourceSansBold
+welcomeLabel.TextSize = 24
+welcomeLabel.Parent = homeContent
+
+local placeLabel = Instance.new("TextLabel")
+placeLabel.Size = UDim2.new(1, 0, 0, 30)
+placeLabel.Position = UDim2.new(0, 0, 0, 120)
+placeLabel.BackgroundTransparency = 1
+placeLabel.Text = "Place: " .. game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+placeLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+placeLabel.Font = Enum.Font.SourceSans
+placeLabel.TextSize = 20
+placeLabel.Parent = homeContent
+
+local vibeLabel = Instance.new("TextLabel")
+vibeLabel.Size = UDim2.new(1, 0, 0, 60)
+vibeLabel.Position = UDim2.new(0, 0, 0, 160)
+vibeLabel.BackgroundTransparency = 1
+vibeLabel.Text = "Bl1ss gui v20\nF3X games and HD Admin games"
+vibeLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+vibeLabel.Font = Enum.Font.SourceSansItalic
+vibeLabel.TextSize = 26
+vibeLabel.Parent = homeContent
+
+-- Discord Button (change the link to yours!)
+local discordBtn = Instance.new("TextButton")
+discordBtn.Size = UDim2.new(0, 200, 0, 50)
+discordBtn.Position = UDim2.new(0.5, -100, 0, 250)
+discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+discordBtn.Text = "Join Discord"
+discordBtn.TextColor3 = Color3.new(1,1,1)
+discordBtn.Font = Enum.Font.Code
+discordBtn.TextSize = 22
+discordBtn.Parent = homeContent
+
+discordBtn.MouseButton1Click:Connect(function()
+    setclipboard("https://discord.gg/fZmJr88Uq2")  -- ← PUT YOUR DISCORD HERE
+    addLog("Discord link copied to clipboard!")
+    discordBtn.Text = "Copied!"
+    task.wait(1)
+    discordBtn.Text = "Join Discord"
+end)
+
+-- Credits
+local creditsLabel = Instance.new("TextLabel")
+creditsLabel.Size = UDim2.new(1, 0, 0, 60)
+creditsLabel.Position = UDim2.new(0, 0, 1, -70)
+creditsLabel.BackgroundTransparency = 1
+creditsLabel.Text = "Made  by bl1sskidd\nNOTICE: Leak=Gay. 2025 copyright Team Bl1ss"
+creditsLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+creditsLabel.Font = Enum.Font.SourceSansLight
+creditsLabel.TextSize = 18
+creditsLabel.Parent = homeContent
+
+-- Smaller Button Creator
+local function createButton(name, parent, url)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(115, 12, 194)
+    btn.Font = Enum.Font.SourceSans
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextSize = 15
+    btn.Parent = parent
+
+    btn.MouseButton1Click:Connect(function()
+        if url and url ~= "" then
+            task.spawn(function()
+                pcall(function()
+                    loadstring(game:HttpGet(url))()
+                end)
+            end)
+        end
+    end)
+end
+
+-- Epik Tab - Two Columns
+local leftEpik = Instance.new("Frame")
+leftEpik.Size = UDim2.new(0.5, -5, 1, 0)
+leftEpik.BackgroundTransparency = 1
+leftEpik.Parent = epikContent
+
+local rightEpik = Instance.new("Frame")
+rightEpik.Size = UDim2.new(0.5, -5, 1, 0)
+rightEpik.Position = UDim2.new(0.5, 5, 0, 0)
+rightEpik.BackgroundTransparency = 1
+rightEpik.Parent = epikContent
+
+local leftLayout = Instance.new("UIListLayout")
+leftLayout.Padding = UDim.new(0, 4)
+leftLayout.Parent = leftEpik
+
+local rightLayout = Instance.new("UIListLayout")
+rightLayout.Padding = UDim.new(0, 4)
+rightLayout.Parent = rightEpik
+
+-- Epik Buttons
+local epikNames = {"Grab Knife","C00lkidd decal","Obunga","Idk","RC7 Cloud","Men Decal","Shedletsky Sky","Slap Map","NDS Map","Obama Rain","Bonk decal","Goner","Allah Decal","Particle Spam","Romania","Scary Decal","Scary Sky","Scary Particles","Smile Sky","Baseplate"}
+local epikURLs = {
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/grab%20knoif.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/c000lkidd%20decal.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/obunga%20decal.txt",
+    "https://pastefy.app/BZpkrEZG/raw",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/Rc7_Cloud_F3X_v2.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/men%20decal.txt",
+    "https://pastebin.com/raw/jizrcbd4",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/slap%20tower.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/nds.txt",
+    "https://pastebin.com/raw/4RVkHQQi",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/bonk%20decal.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/goner.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Decal-f3x/refs/heads/main/allah%20decal.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/particle%20spam",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/romania.txt",
+    "https://pastefy.app/38YPGxkw/raw",
+    "https://pastefy.app/5zVghWhf/raw",
+    "https://pastefy.app/Bo74L7xR/raw",
+    "https://pastebin.com/raw/qJhYhABq",
+    "https://pastefy.app/Lbjknyle/raw"
+}
+
+for i = 1, #epikNames do
+    local parent = (i <= 10) and leftEpik or rightEpik
+    createButton(epikNames[i], parent, epikURLs[i])
+end
+
+-- tabz Tab - Two Columns
+local leftTabz = Instance.new("Frame")
+leftTabz.Size = UDim2.new(0.5, -5, 1, 0)
+leftTabz.BackgroundTransparency = 1
+leftTabz.Parent = tabzContent
+
+local rightTabz = Instance.new("Frame")
+rightTabz.Size = UDim2.new(0.5, -5, 1, 0)
+rightTabz.Position = UDim2.new(0.5, 5, 0, 0)
+rightTabz.BackgroundTransparency = 1
+rightTabz.Parent = tabzContent
+
+local leftTabzLayout = Instance.new("UIListLayout")
+leftTabzLayout.Padding = UDim.new(0, 4)
+leftTabzLayout.Parent = leftTabz
+
+local rightTabzLayout = Instance.new("UIListLayout")
+rightTabzLayout.Padding = UDim.new(0, 4)
+rightTabzLayout.Parent = rightTabz
+
+-- tabz Buttons
+local tabzNames = {"Decal Spam 1","Skybox 1","Skybox 2","Btools","Particles","Decal spam 2","Fire All","Char All","My Realm","Thomas","Rain Troll","Message 1","Message 2","Title All","Audio 1","Mini Gui","k00pgui","External","cfc skybox","cfc decal"}
+local tabzURLs = {
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/decal.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/skybox.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/bl1ss%20sky.txt",
+    "https://pastefy.app/le7UXaTo/raw",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/particles.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/bl1ss%20decal.txt",
+    "https://pastefy.app/L9ehHB3W/raw",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/char%20all.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/my%20realm.txt",
+    "https://pastebin.com/raw/WneFn7Wv",
+    "https://pastefy.app/6hQPrW8e/raw",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/sm%201",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/sm%202",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/title%20all",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/music",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/bliss%20gui%20v15.txt",
+    "https://rawscripts.net/raw/Universal-Script-k00pkidd-gui-f3x-67601",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui/refs/heads/main/message%20internaltxt.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/ceausescu%20sky.txt",
+    "https://raw.githubusercontent.com/projectbl1ssofficialenterprise/Bl1ss-gui-v2/refs/heads/main/ceausescu%20decal.txt"
+}
+
+for i = 1, #tabzNames do
+    local parent = (i <= 10) and leftTabz or rightTabz
+    createButton(tabzNames[i], parent, tabzURLs[i])
+end
+
+-- Executor Tab
+local codeScroll = Instance.new("ScrollingFrame")
+codeScroll.Size = UDim2.new(1, -10, 0.8, 0)
+codeScroll.Position = UDim2.new(0, 5, 0, 5)
+codeScroll.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+codeScroll.BorderSizePixel = 1
+codeScroll.BorderColor3 = Color3.fromRGB(115, 12, 194)
+codeScroll.ScrollBarThickness = 8
+codeScroll.Parent = executorContent
+
+local codeBox = Instance.new("TextBox")
+codeBox.Size = UDim2.new(1, -10, 1, -10)
+codeBox.Position = UDim2.new(0, 5, 0, 5)
+codeBox.BackgroundTransparency = 1
+codeBox.TextColor3 = Color3.new(1,1,1)
+codeBox.Font = Enum.Font.Code
+codeBox.TextSize = 16
+codeBox.MultiLine = true
+codeBox.ClearTextOnFocus = false
+codeBox.Text = "-- Scrie cod aici și apasă Execute"
+codeBox.TextXAlignment = Enum.TextXAlignment.Left
+codeBox.TextYAlignment = Enum.TextYAlignment.Top
+codeBox.Parent = codeScroll
+
+local executeBtn = Instance.new("TextButton")
+executeBtn.Size = UDim2.new(1, -10, 0, 40)
+executeBtn.Position = UDim2.new(0, 5, 0.82, 0)
+executeBtn.BackgroundColor3 = Color3.fromRGB(115, 12, 194)
+executeBtn.Text = "Execute"
+executeBtn.TextColor3 = Color3.new(1,1,1)
+executeBtn.Font = Enum.Font.Code
+executeBtn.TextSize = 20
+executeBtn.Parent = executorContent
+
+executeBtn.MouseButton1Click:Connect(function()
+    local code = codeBox.Text
+    if code ~= "" and code ~= "-- Scrie cod aici și apasă Execute" then
+        task.spawn(function()
+            local func, err = loadstring(code)
+            if func then
+                pcall(func)
+            else
+                warn("Error: " .. tostring(err))
+            end
+        end)
+    end
+end)
+
+-- Console Tab
+local consoleScroll = Instance.new("ScrollingFrame")
+consoleScroll.Size = UDim2.new(1, -10, 1, -10)
+consoleScroll.Position = UDim2.new(0, 5, 0, 5)
+consoleScroll.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+consoleScroll.BorderSizePixel = 1
+consoleScroll.BorderColor3 = Color3.fromRGB(115, 12, 194)
+consoleScroll.ScrollBarThickness = 8
+consoleScroll.Parent = consoleContent
+
+local consoleLayout = Instance.new("UIListLayout")
+consoleLayout.Padding = UDim.new(0, 4)
+consoleLayout.Parent = consoleScroll
+
+local function addLog(msg)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -10, 0, 20)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.new(1,1,1)
+    label.Font = Enum.Font.Code
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = msg
+    label.Parent = consoleScroll
+
+    consoleScroll.CanvasSize = UDim2.new(0, 0, 0, consoleLayout.AbsoluteContentSize.Y + 10)
+    consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.AbsoluteCanvasSize.Y)
+end
+
+-- ===== UTILITY TAB =====
+local leftUtility = Instance.new("Frame")
+leftUtility.Size = UDim2.new(0.5, -5, 1, 0)
+leftUtility.BackgroundTransparency = 1
+leftUtility.Parent = utilityContent
+
+local rightUtility = Instance.new("Frame")
+rightUtility.Size = UDim2.new(0.5, -5, 1, 0)
+rightUtility.Position = UDim2.new(0.5, 5, 0, 0)
+rightUtility.BackgroundTransparency = 1
+rightUtility.Parent = utilityContent
+
+local leftUtilLayout = Instance.new("UIListLayout")
+leftUtilLayout.Padding = UDim.new(0, 4)
+leftUtilLayout.Parent = leftUtility
+
+local rightUtilLayout = Instance.new("UIListLayout")
+rightUtilLayout.Padding = UDim.new(0, 4)
+rightUtilLayout.Parent = rightUtility
+
+local function makeUtilBtn(name, parent)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(115, 12, 194)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSans
+    btn.TextSize = 15
+    btn.Parent = parent
+    return btn
+end
+
+local rejoinBtn = makeUtilBtn("Rejoin", leftUtility)
+rejoinBtn.MouseButton1Click:Connect(function()
+    rejoinBtn.Text = "Rejoining..."
+    task.spawn(function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+    end)
+end)
+
+local serverhopBtn = makeUtilBtn("Serverhop", leftUtility)
+serverhopBtn.MouseButton1Click:Connect(function()
+    serverhopBtn.Text = "Hopping..."
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local TeleportService = game:GetService("TeleportService")
+        local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local success, response = pcall(function()
+            return HttpService:JSONDecode(game:HttpGet(url))
+        end)
+        if success and response and response.data and #response.data > 0 then
+            local servers = response.data
+            local randomServer = servers[math.random(1, #servers)]
+            if randomServer.playing < randomServer.maxPlayers and randomServer.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer.id)
+            end
+        end
+    end)
+end)
+
+local fpsBtn = makeUtilBtn("FPS Counter: OFF", leftUtility)
+local fpsConnection
+fpsBtn.MouseButton1Click:Connect(function()
+    if fpsConnection then
+        fpsConnection:Disconnect()
+        fpsConnection = nil
+        fpsBtn.Text = "FPS Counter: OFF"
+        fpsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        fpsBtn.TextColor3 = Color3.new(1, 1, 1)
+        addLog("FPS Counter disabled")
+        return
+    end
+
+    local frames = 0
+    local lastTime = tick()
+    fpsConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        frames += 1
+        if tick() - lastTime >= 1 then
+            local fps = math.floor(frames / (tick() - lastTime) + 0.5)
+            fpsBtn.Text = "FPS: " .. fps
+            if fps >= 60 then
+                fpsBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
+            elseif fps >= 30 then
+                fpsBtn.TextColor3 = Color3.fromRGB(255, 255, 0)
+            else
+                fpsBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+            end
+            frames = 0
+            lastTime = tick()
+        end
+    end)
+    fpsBtn.BackgroundColor3 = Color3.fromRGB(115, 12, 194)
+    addLog("FPS Counter enabled")
+end)
+
+local iyBtn = makeUtilBtn("Infinity Yield", rightUtility)
+iyBtn.MouseButton1Click:Connect(function()
+    iyBtn.Text = "Loading IY..."
+    task.spawn(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+        end)
+        iyBtn.Text = "Infinity Yield"
+    end)
+end)
+
+local leaveBtn = makeUtilBtn("Leave", rightUtility)
+leaveBtn.MouseButton1Click:Connect(function()
+    leaveBtn.Text = "Leaving..."
+    task.wait(0.5)
+    game.Players.LocalPlayer:Kick("Left the game using bl1sskidd gui")
+end)
+
+local clearBtn = makeUtilBtn("Clear Console", rightUtility)
+clearBtn.MouseButton1Click:Connect(function()
+    for _, obj in pairs(consoleScroll:GetChildren()) do
+        if obj:IsA("TextLabel") then
+            obj:Destroy()
+        end
+    end
+    consoleScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    addLog("Console cleared by user")
+end)
+
+addLog("FBI is at ur door!")
+
+-- Final logs
+local oldPrint = print
+print = function(...) 
+    local msg = table.concat({...}, "\t")
+    oldPrint(...)
+    addLog("[PRINT] " .. msg)
+end
+
+local oldWarn = warn
+warn = function(...) 
+    local msg = table.concat({...}, "\t")
+    oldWarn(...)
+    addLog("[WARN] " .. msg)
+end
+
+addLog("Gui loaded! ")
+print("bl1sskidd gui v20")

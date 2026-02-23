@@ -1,0 +1,394 @@
+-- XGhost Hub X - Bl1ssPolaria Integration (Full Port of Polaria F3X by bl1sskidd)
+-- All 25 scripts added + full features from the document
+
+local player = game.Players.LocalPlayer
+local MarketplaceService = gameGetService(MarketplaceService)
+local HttpService = gameGetService(HttpService)
+local TeleportService = gameGetService(TeleportService)
+local RunService = gameGetService(RunService)
+local LocalizationService = gameGetService(LocalizationService)
+local UserInputService = gameGetService(UserInputService)
+local GuiService = gameGetService(GuiService)
+
+local sg = Instance.new(ScreenGui)
+sg.Name = XGhostHubX
+sg.ResetOnSpawn = false
+sg.Parent = game.CoreGui
+
+-- Main Frame
+local mainFrame = Instance.new(Frame, sg)
+mainFrame.Size = UDim2.new(0, 620, 0, 440)
+mainFrame.Position = UDim2.new(0.5, -310, 0.5, -220)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+Instance.new(UICorner, mainFrame).CornerRadius = UDim.new(0, 10)
+
+-- Title Bar
+local title = Instance.new(TextLabel, mainFrame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+title.Text = XGhost Hub X
+title.TextColor3 = Color3.fromRGB(115, 18, 194)
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 24
+title.Parent = mainFrame
+Instance.new(UICorner, title).CornerRadius = UDim.new(0, 10)
+
+local close = Instance.new(TextButton, title)
+close.Size = UDim2.new(0, 36, 1, 0)
+close.Position = UDim2.new(1, -40, 0, 0)
+close.BackgroundTransparency = 1
+close.Text = X
+close.TextColor3 = Color3.fromRGB(220, 80, 80)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 22
+close.MouseButton1ClickConnect(function() sgDestroy() end)
+
+-- Sidebar Tabs
+local sidebar = Instance.new(Frame, mainFrame)
+sidebar.Size = UDim2.new(0, 140, 1, -40)
+sidebar.Position = UDim2.new(0, 0, 0, 40)
+sidebar.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+
+local tabs = {Main, GhostScript, Other, GameHub}
+local tabBtns = {}
+local pages = {}
+
+local function makeTab(name, y)
+    local btn = Instance.new(TextButton)
+    btn.Size = UDim2.new(1, -10, 0, 45)
+    btn.Position = UDim2.new(0, 5, 0, y)
+    btn.BackgroundColor3 = (name == Main) and Color3.fromRGB(115, 18, 194) or Color3.fromRGB(35, 35, 45)
+    btn.BorderSizePixel = 0
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 17
+    btn.Parent = sidebar
+    Instance.new(UICorner, btn).CornerRadius = UDim.new(0, 8)
+
+    btn.MouseButton1ClickConnect(function()
+        for _, b in tabBtns do b.BackgroundColor3 = Color3.fromRGB(35,35,45) end
+        btn.BackgroundColor3 = Color3.fromRGB(115, 18, 194)
+        for _, p in pages do p.Visible = (p.Name == name) end
+    end)
+    table.insert(tabBtns, btn)
+end
+
+for i, t in ipairs(tabs) do makeTab(t, (i-1)50) end
+
+-- Content Area
+local content = Instance.new(Frame, mainFrame)
+content.Size = UDim2.new(1, -150, 1, -50)
+content.Position = UDim2.new(0, 150, 0, 45)
+content.BackgroundTransparency = 1
+
+local function makePage(name)
+    local sc = Instance.new(ScrollingFrame, content)
+    sc.Name = name
+    sc.Size = UDim2.new(1,0,1,0)
+    sc.BackgroundTransparency = 1
+    sc.ScrollBarThickness = 6
+    sc.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    sc.Visible = (name == Main)
+
+    local g = Instance.new(UIGridLayout, sc)
+    g.CellSize = UDim2.new(0.47, 0, 0, 45)
+    g.CellPadding = UDim2.new(0.03,0,0.02,0)
+    g.SortOrder = Enum.SortOrder.LayoutOrder
+
+    pages[name] = sc
+    return sc
+end
+
+for _, t in tabs do makePage(t) end
+
+-- Button creator
+local function btn(text, par, cb)
+    local b = Instance.new(TextButton)
+    b.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    b.Text = text
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.Gotham
+    b.TextSize = 15
+    b.TextWrapped = true
+    Instance.new(UICorner, b).CornerRadius = UDim.new(0,7)
+    b.Parent = par
+    if cb then b.MouseButton1ClickConnect(cb) end
+    return b
+end
+
+-- ==================== MAIN (Home) ====================
+local mainPg = pages.Main
+
+local av = Instance.new(ImageLabel, mainPg)
+av.Size = UDim2.new(0, 70, 0, 70)
+av.Position = UDim2.new(0, 10, 0, 10)
+av.BackgroundTransparency = 1
+av.Image = rbxthumbtype=AvatarHeadShot&id=..player.UserId..&w=420&h=420
+
+-- Country flag
+local countryCode = XX
+local countryFlag = 🏳️
+pcall(function()
+    countryCode = LocalizationServiceGetCountryRegionForPlayerAsync(player)
+    if countryCode and #countryCode == 2 then
+        local offset = 0x1F1E6 - string.byte(A)
+        local first = string.byte(string.upper(string.sub(countryCode,1,1))) + offset
+        local second = string.byte(string.upper(string.sub(countryCode,2,2))) + offset
+        countryFlag = utf8.char(first, second)
+    end
+end)
+
+-- DeviceOS detection
+local osName = Unknown Device
+if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+    osName = Mobile
+elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
+    if GuiServiceIsTenFootInterface() then
+        osName = Console
+    else
+        osName = Windows
+    end
+elseif UserInputService.GamepadEnabled then
+    osName = Gamepad  Console
+end
+
+local homeInfo = {
+    sup,  .. player.DisplayName,
+    @ .. player.Name,
+    Place  .. (pcall(function() return MarketplaceServiceGetProductInfo(game.PlaceId).Name end) and MarketplaceServiceGetProductInfo(game.PlaceId).Name or ),
+    FE Status Disabled,
+    countryFlag ..  Country  .. countryCode,
+    Device  .. osName,
+    Server Time  .. os.date(%X),
+    Job ID  .. game.JobId,
+    Place ID  .. game.PlaceId
+}
+
+for i, text in ipairs(homeInfo) do
+    local lbl = Instance.new(TextLabel, mainPg)
+    lbl.Size = UDim2.new(1, 0, 0, 25)
+    lbl.Position = UDim2.new(0, 90, 0, 10 + (i-1)25)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 18
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+-- ==================== GHOSTSCRIPT (All 25 Scripts from Polaria) ====================
+local gsPg = pages.GhostScript
+
+local polariaScripts = {
+    {Lnicky, httpsrawscripts.netrawUniversal-Script-LNicky-Ultimate-F3X-Gui-42094},
+    {Infinite Yield, httpscdn.wearedevs.netscriptsInfinite%20Yield.txt},
+    {1x1x1x1, httpsrawscripts.netrawUniversal-Script-1x1x1x1-gui-f3x-and-hd-admin-41931},
+    {Zoung GUI, httpsrawscripts.netrawUniversal-Script-zoung-gui-private-edition-41511},
+    {Synapse X, httpsraw.githubusercontent.comAZYsGithubChillz-s-scriptsmainSynapse-X-Remake.lua},
+    {SSP, httpspastefy.appt2gUwfXyraw},
+    {Epik R6 Dancezz, httpsrawscripts.netrawUniversal-Script-Epik-R6-Dancezz-42246},
+    {GhostHub, httpsraw.githubusercontent.comGhostPlayer352Test4mainGhostHub},
+    {Client Sided GUI, httpspastefy.appkVLBGCjGraw},
+    {ChatHax, httpspastefy.app8XhIoZYXraw},
+    {Barry Prison FE TROLL, httpspastebin.comrawa71y69Gr},
+    {g00byd0lan, httpsrawscripts.netrawUniversal-Script-g00byd0lan-f3x-10362},
+    {HARKED REBORN V2, httpsrawscripts.netrawLive-Life-Rich-and-Famous-in-Paradise!-harked-that-only-work-for-this-game-8800},
+    {Lalol Hub, httpsrawscripts.netrawUniversal-Script-Lalol-hub-30354},
+    {Bany Side, httpsrawscripts.netrawUniversal-Script-Bany-side-28741},
+    {Dex, httpsrawscripts.netrawUniversal-Script-REAL-DEX-EXPLORER-DONT-BE-SCAMMED-41800},
+    {SCP‑096, httpspastefy.appYsJgITXRraw},
+    {Black Hole, httpsraw.githubusercontent.comBac0nHckScriptsmainBringFlingPlayers},
+    {Sonic.exe, httpspastefy.appjRSu2UQRraw},
+    {Brookhaven SS, httpsscriptblox.comrawBrookhaven-RP-R4D-TROLL-NO-KEY-17625},
+    {Sypcerr, httpsraw.githubusercontent.comsypcerrFECollectionrefsheadsmainscript.lua},
+    {Fly GUI v3, httpsrawscripts.netrawUniversal-Script-Gui-Fly-v3-37111},
+    {c00lgui, httpsrawscripts.netrawUniversal-Script-C00lgui-f3x-9682},
+    {FE Bypass, httpspastebin.comrawDxMwPkXH},
+    {Energize, httpsrawscripts.netrawa-literal-baseplate.-energize-gui-24798}
+}
+
+for _, data in ipairs(polariaScripts) do
+    btn(data[1], gsPg, function()
+        loadstring(gameHttpGet(data[2]))()
+    end)
+end
+
+-- ==================== OTHER (ServerLocal + Utility) ====================
+local othPg = pages.Other
+
+-- WalkSpeedJumpPower from document
+for _, prop in ipairs({WalkSpeed, JumpPower}) do
+    local lbl = Instance.new(TextLabel, othPg)
+    lbl.Size = UDim2.new(0.4, 0, 0, 30)
+    lbl.Text = prop .. 
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 16
+    lbl.BackgroundTransparency = 1
+
+    local box = Instance.new(TextBox, othPg)
+    box.Size = UDim2.new(0.3, 0, 0, 30)
+    box.Text = tostring(player.Character and player.Character.Humanoid[prop] or 16)
+    box.Font = Enum.Font.Code
+    box.TextSize = 16
+    box.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    Instance.new(UICorner, box)
+
+    btn(Apply, othPg, function()
+        local val = tonumber(box.Text)
+        if val and player.Character and player.CharacterFindFirstChild(Humanoid) then
+            player.Character.Humanoid[prop] = val
+        end
+    end)
+end
+
+btn(Rejoin, othPg, function()
+    TeleportServiceTeleport(game.PlaceId, player)
+end)
+
+btn(Serverhop, othPg, function(b)
+    b.Text = Hopping...
+    task.spawn(function()
+        local servers = HttpServiceJSONDecode(gameHttpGet(httpsgames.roblox.comv1games .. game.PlaceId .. serversPublicsortOrder=Asc&limit=100)).data
+        for _, s in servers do
+            if s.playing  s.maxPlayers and s.id ~= game.JobId then
+                TeleportServiceTeleportToPlaceInstance(game.PlaceId, s.id)
+                return
+            end
+        end
+        b.Text = Serverhop
+    end)
+end)
+
+local fpsBtn = btn(FPS Counter OFF, othPg)
+local fpsConn
+fpsBtn.MouseButton1ClickConnect(function()
+    if fpsConn then
+        fpsConnDisconnect()
+        fpsConn = nil
+        fpsBtn.Text = FPS Counter OFF
+        fpsBtn.BackgroundColor3 = Color3.fromRGB(45,45,55)
+        return
+    end
+
+    local frames, last = 0, tick()
+    fpsConn = RunService.HeartbeatConnect(function()
+        frames += 1
+        if tick() - last = 1 then
+            local fps = math.floor(frames  (tick() - last) + 0.5)
+            fpsBtn.Text = FPS  .. fps
+            fpsBtn.TextColor3 = (fps = 60 and Color3.new(0,1,0)) or (fps = 30 and Color3.new(1,1,0)) or Color3.new(1,0,0)
+            frames, last = 0, tick()
+        end
+    end)
+    fpsBtn.BackgroundColor3 = Color3.fromRGB(115, 18, 194)
+end)
+
+btn(Infinity Yield, othPg, function()
+    loadstring(gameHttpGet(httpsraw.githubusercontent.comEdgeIYinfiniteyieldmastersource))()
+end)
+
+btn(Leave, othPg, function()
+    playerKick(Left via XGhost Hub X)
+end)
+
+-- ==================== GAMEHUB (Executor + Console) ====================
+local ghPg = pages.GameHub
+
+-- Executor from document (with line numbers)
+local codeFrame = Instance.new(Frame, ghPg)
+codeFrame.Size = UDim2.new(1, -20, 0.7, -20)
+codeFrame.Position = UDim2.new(0, 10, 0, 10)
+codeFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Instance.new(UICorner, codeFrame)
+
+local lineNumbers = Instance.new(TextLabel, codeFrame)
+lineNumbers.Size = UDim2.new(0, 40, 1, -4)
+lineNumbers.Position = UDim2.new(0, 4, 0, 2)
+lineNumbers.BackgroundTransparency = 1
+lineNumbers.TextColor3 = Color3.fromRGB(140, 140, 160)
+lineNumbers.Font = Enum.Font.Code
+lineNumbers.TextSize = 13
+lineNumbers.TextXAlignment = Enum.TextXAlignment.Right
+lineNumbers.TextYAlignment = Enum.TextYAlignment.Top
+lineNumbers.Text = 1
+
+local code = Instance.new(TextBox, codeFrame)
+code.Size = UDim2.new(1, -48, 1, -4)
+code.Position = UDim2.new(0, 48, 0, 2)
+code.BackgroundTransparency = 1
+code.TextColor3 = Color3.new(1,1,1)
+code.Font = Enum.Font.Code
+code.TextSize = 14
+code.MultiLine = true
+code.ClearTextOnFocus = false
+code.TextXAlignment = Enum.TextXAlignment.Left
+code.TextYAlignment = Enum.TextYAlignment.Top
+code.Text = -- Paste  write Lua code here --
+
+local function updateLineNumbers()
+    local text = code.Text or 
+    local lines = 1
+    for _ in textgmatch(n) do lines = lines + 1 end
+    local numText = 
+    for i = 1, lines do numText = numText .. i .. n end
+    lineNumbers.Text = numText
+end
+codeGetPropertyChangedSignal(Text)Connect(updateLineNumbers)
+
+btn(Execute, ghPg, function()
+    loadstring(code.Text)()
+end)
+
+btn(Clear, ghPg, function()
+    code.Text = 
+    updateLineNumbers()
+end)
+
+btn(Copy, ghPg, function()
+    setclipboard(code.Text)
+end)
+
+btn(Hide GUI, ghPg, function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+-- Console (from previous + document style)
+local consoleScroll = Instance.new(ScrollingFrame, ghPg)
+consoleScroll.Size = UDim2.new(1, -20, 0.25, -20)
+consoleScroll.Position = UDim2.new(0, 10, 0.75, 10)
+consoleScroll.BackgroundColor3 = Color3.fromRGB(25,25,30)
+consoleScroll.ScrollBarThickness = 6
+
+local conList = Instance.new(UIListLayout, consoleScroll)
+conList.Padding = UDim.new(0,4)
+
+local function log(msg)
+    local l = Instance.new(TextLabel, consoleScroll)
+    l.Size = UDim2.new(1,-10,0,22)
+    l.BackgroundTransparency = 1
+    l.Text = msg
+    l.TextColor3 = Color3.new(1,1,1)
+    l.Font = Enum.Font.Code
+    l.TextSize = 13
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    consoleScroll.CanvasSize = UDim2.new(0,0,0,conList.AbsoluteContentSize.Y + 20)
+    consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.AbsoluteCanvasSize.Y)
+end
+
+btn(Clear Console, ghPg, function()
+    for _, c in consoleScrollGetChildren() do if cIsA(TextLabel) then cDestroy() end end
+    log(Console cleared)
+end)
+
+-- Hooks
+local op, ow = print, warn
+print = function(...) local m = table.concat({...},	) op(...) log([PRINT] ..m) end
+warn  = function(...) local m = table.concat({...},	) ow (...) log([WARN]  ..m) end
+
+log(XGhost Hub X - Polaria F3X by bl1sskidd loaded)
+print(Polaria f3x ported by bl1sskidd → XGhost Hub X edition)
